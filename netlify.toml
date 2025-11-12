@@ -1,0 +1,14 @@
+[build]
+  command = ""
+  publish = "dist"  # or "." if your HTML files live in the root
+
+[dev]
+  command = "npm run dev"
+  port = 5173
+  targetPort = 5173
+  autoLaunch = false
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
