@@ -158,3 +158,4 @@ For issues or questions, contact: hello@datasolved.com
 - Email sending happens server-side via Netlify function
 - SMTP credentials never exposed to the browser
 - All email sending happens through EmailIt's secure SMTP server
+# Trigger redeploy
