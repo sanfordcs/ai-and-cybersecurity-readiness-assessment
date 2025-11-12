@@ -2,9 +2,15 @@
 const handler = async (event) => {
   try {
     const data = JSON.parse(event.body || "{}");
-    const { to, name, organization, score } = data;
 
-    if (!to || !name || !organization || !score) {
+    // Accept both old and new field names
+    const to = data.to || data.email;
+    const name = data.name || `${data.firstName || ""} ${data.lastName || ""}`.trim();
+    const organization = data.organization;
+    const score = data.score;
+
+    if (!to || !organization || !score) {
+      console.error("❌ Missing fields:", { to, name, organization, score });
       return {
         statusCode: 400,
         body: JSON.stringify({ success: false, error: "Missing required fields" }),
@@ -14,7 +20,7 @@ const handler = async (event) => {
     const resendApiKey = process.env.RESEND_API_KEY;
     const resendUrl = "https://api.resend.com/emails";
 
-    // --- USER EMAIL (Confirmation) ---
+    // --- USER EMAIL ---
     const userEmail = {
       from: "DataSolved <hello@datasolved.com>",
       to: [to],
@@ -24,7 +30,7 @@ const handler = async (event) => {
         <body style="font-family: Arial, sans-serif; color: #333; line-height: 1.6; margin: 0; padding: 0;">
           <div style="max-width:600px;margin:auto;padding:30px;background:#f9f9f9;">
             <h2 style="text-align:center;color:#0078D4;">🎯 Your Results Are In</h2>
-            <p>Hi ${name},</p>
+            <p>Hi ${name || "there"},</p>
             <p>Thank you for completing the <strong>AI & Cybersecurity Readiness Assessment</strong> with DataSolved.</p>
             <p><strong>Organization:</strong> ${organization}<br/>
             <strong>Score:</strong> ${score}</p>
@@ -39,7 +45,7 @@ const handler = async (event) => {
       `,
     };
 
-    // --- ADMIN EMAIL (Notification) ---
+    // --- ADMIN EMAIL ---
     const adminEmail = {
       from: "DataSolved <hello@datasolved.com>",
       to: ["ssanford@datasolved.com", "sales@datasolved.com"],
@@ -49,7 +55,7 @@ const handler = async (event) => {
         <body style="font-family: Arial, sans-serif; color:#333; line-height:1.6; margin:0; padding:0;">
           <div style="max-width:600px;margin:auto;padding:30px;background:#f9f9f9;">
             <h2 style="color:#0078D4;">New Readiness Assessment Submission</h2>
-            <p><strong>Name:</strong> ${name}</p>
+            <p><strong>Name:</strong> ${name || "N/A"}</p>
             <p><strong>Organization:</strong> ${organization}</p>
             <p><strong>Score:</strong> ${score}</p>
             <p><strong>User Email:</strong> ${to}</p>
@@ -62,9 +68,9 @@ const handler = async (event) => {
       `,
     };
 
-    // Helper to send via Resend API
+    // Helper: send via Resend API
     const sendResendEmail = async (payload) => {
-      const res = await fetch(resendUrl, {
+      const res = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${resendApiKey}`,
@@ -78,7 +84,7 @@ const handler = async (event) => {
       return JSON.parse(text);
     };
 
-    // Send both emails
+    // Send both
     await sendResendEmail(userEmail);
     await sendResendEmail(adminEmail);
 
