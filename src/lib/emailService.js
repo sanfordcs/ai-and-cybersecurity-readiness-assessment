@@ -2,7 +2,7 @@
  * Email Service - Netlify Serverless Function Integration
  * 
  * This service sends emails via a Netlify serverless function
- * that uses EmailIt SMTP with Nodemailer.
+ * that sends through Resend. No provider credentials are exposed to the browser.
  */
 
 export const sendReadinessReport = async (data) => {
@@ -30,21 +30,26 @@ export const sendReadinessReport = async (data) => {
     console.log('📊 Response Status:', response.status);
     console.log('📊 Response Status Text:', response.statusText);
 
+    const contentType = response.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      throw new Error(`Email service returned an invalid response (${response.status})`);
+    }
+
     const result = await response.json();
     console.log('📊 Response Body:', result);
 
     if (response.ok && result.success) {
       console.log('✅ [SUCCESS] Emails sent successfully');
       return {
-        adminSent: true,
-        userSent: true,
+        adminSent: result.adminSent === true,
+        userSent: result.userSent === true,
         error: null
       };
     } else {
       console.error('❌ [ERROR] Email send failed:', result.error);
       return {
-        adminSent: false,
-        userSent: false,
+        adminSent: result.adminSent === true,
+        userSent: result.userSent === true,
         error: result.error || 'Failed to send emails'
       };
     }
@@ -60,42 +65,11 @@ export const sendReadinessReport = async (data) => {
 };
 
 export const testEmailConfiguration = async () => {
-  console.log('🧪 Testing Netlify email function configuration...');
-  
+  console.log('🧪 Checking Netlify email function configuration...');
   try {
-    const testPayload = {
-      organization: 'Test Organization',
-      user_email: 'test@example.com',
-      firstName: 'Test',
-      lastName: 'User',
-      score: 50,
-      max_score: 96,
-      percentage: 52,
-      risk_category: 'Medium',
-      level: 2,
-      levelName: 'Exploring',
-      description: 'Test description',
-      recommendations: ['Test recommendation'],
-      sectionScores: {
-        section_0: 8,
-        section_1: 8,
-        section_2: 8,
-        section_3: 8,
-        section_4: 8,
-        section_5: 8
-      },
-      phone: '555-1234',
-      companySize: '10-24 employees'
-    };
-
-    console.log('📤 Sending test request to: /.netlify/functions/sendEmail');
-
     const response = await fetch('/.netlify/functions/sendEmail', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(testPayload)
+      method: 'GET',
+      headers: { Accept: 'application/json' }
     });
 
     console.log('📊 Test Response Status:', response.status);
@@ -104,14 +78,14 @@ export const testEmailConfiguration = async () => {
     console.log('📊 Test Response Body:', result);
 
     if (response.ok && result.success) {
-      console.log('✅ [SUCCESS] Email function is properly configured');
+      console.log('✅ [SUCCESS] Email function is available');
       return {
         success: true,
-        message: 'Email function is properly configured',
+        message: 'Email function is available',
         data: result
       };
     } else {
-      console.error('❌ [ERROR] Email function returned error:', result.error);
+      console.error('❌ [ERROR] Email function is unavailable:', result.error);
       return {
         success: false,
         error: result.error || 'Email function test failed'

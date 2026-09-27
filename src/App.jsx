@@ -4,7 +4,7 @@ import LeadCapture from './components/LeadCapture';
 import Survey from './components/Survey';
 import FinalContact from './components/FinalContact';
 import Results from './components/Results';
-import { sendReadinessReport, testEmailConfiguration } from './lib/emailService';
+import { sendReadinessReport } from './lib/emailService';
 import './App.css';
 
 function App() {
@@ -13,13 +13,6 @@ function App() {
   const [surveyData, setSurveyData] = useState({});
   const [contactData, setContactData] = useState({});
   const [resultsData, setResultsData] = useState({});
-
-  // Test email configuration on app load
-  React.useEffect(() => {
-    testEmailConfiguration().then(isValid => {
-      console.log('🔧 EmailJS configuration test result:', isValid ? '✅ Valid' : '❌ Invalid');
-    });
-  }, []);
 
   const handleLeadSubmit = (data) => {
     setLeadData(data);
@@ -55,8 +48,8 @@ function App() {
       score: fullReportData.score
     });
 
-    // Send emails using the EmailJS service
-    await sendEmailReport(fullReportData);
+    const emailDelivery = await sendEmailReport(fullReportData);
+    setResultsData({ ...results, emailDelivery });
     setCurrentStep('results');
   };
 
@@ -423,7 +416,11 @@ function App() {
         firstName: !!data.firstName,
         lastName: !!data.lastName
       });
-      return;
+      return {
+        adminSent: false,
+        userSent: false,
+        error: 'Missing required contact information'
+      };
     }
 
     try {
@@ -445,8 +442,14 @@ function App() {
       if (results.adminSent && results.userSent) {
         console.log('🎉 Both emails sent successfully!');
       }
+      return results;
     } catch (error) {
       console.error('❌ Email send failed:', error);
+      return {
+        adminSent: false,
+        userSent: false,
+        error: error.message || 'Email delivery failed'
+      };
     }
   };
 

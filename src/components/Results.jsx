@@ -21,7 +21,10 @@ const {
 } = FiIcons;
 
 const Results = ({ data, contactData, onGeneratePDF }) => {
-  const [emailStatus, setEmailStatus] = useState('idle');
+  const [emailStatus, setEmailStatus] = useState(() => {
+    if (!data.emailDelivery) return 'idle';
+    return data.emailDelivery.userSent && data.emailDelivery.adminSent ? 'success' : 'failure';
+  });
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [debugMode, setDebugMode] = useState(false);
   const [debugLogs, setDebugLogs] = useState([]);
@@ -468,7 +471,7 @@ const Results = ({ data, contactData, onGeneratePDF }) => {
                   </h2>
                   <p className="text-gray-600 mt-2">
                     {contactData.email
-                      ? 'There was an error sending the email. Please check the debug panel for details or contact support.'
+                      ? 'Your results are ready, but the report email could not be delivered. Please try again or contact DataSolved.'
                       : 'No email address provided.'}{' '}
                     If the issue persists, contact hello@datasolved.com.
                   </p>
