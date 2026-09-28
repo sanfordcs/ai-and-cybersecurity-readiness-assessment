@@ -6,7 +6,7 @@ import SafeIcon from '../common/SafeIcon';
 const { FiBrain, FiDatabase, FiShield, FiUsers, FiFileText, FiTrendingUp, FiChevronLeft, FiChevronRight } = FiIcons;
 
 const Survey = ({ onComplete }) => {
-  const [currentSection, setCurrentSection] = useState(0);
+  const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState({});
 
   const sections = [
@@ -288,10 +288,20 @@ const Survey = ({ onComplete }) => {
     }
   ];
 
-  // Scroll to top when section changes
+  const questions = sections.flatMap((section, sectionIndex) =>
+    section.questions.map((question, questionIndex) => ({
+      ...question,
+      sectionTitle: section.title,
+      sectionIcon: section.icon,
+      sectionIndex,
+      questionIndex
+    }))
+  );
+
+  // Scroll to top when the question changes
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [currentSection]);
+  }, [currentQuestion]);
 
   const handleAnswerChange = (sectionIndex, questionIndex, value) => {
     setAnswers(prev => ({
@@ -303,162 +313,112 @@ const Survey = ({ onComplete }) => {
     }));
   };
 
-  const isCurrentSectionComplete = () => {
-    const currentSectionAnswers = answers[`section_${currentSection}`];
-    if (!currentSectionAnswers) return false;
-    
-    return sections[currentSection].questions.every((_, index) => 
-      currentSectionAnswers[`question_${index}`] !== undefined
-    );
-  };
+  const activeQuestion = questions[currentQuestion];
+  const activeValue = answers[`section_${activeQuestion.sectionIndex}`]?.[`question_${activeQuestion.questionIndex}`];
+  const canProceed = activeValue !== undefined;
 
   const handleNext = () => {
-    if (currentSection < sections.length - 1) {
-      setCurrentSection(currentSection + 1);
+    if (currentQuestion < questions.length - 1) {
+      setCurrentQuestion(currentQuestion + 1);
     } else {
-      onComplete(answers);
+      const answerDetails = questions.map((question) => {
+        const value = answers[`section_${question.sectionIndex}`]?.[`question_${question.questionIndex}`];
+        const selectedOption = question.options.find((option) => option.value === value);
+        return {
+          section: question.sectionTitle,
+          question: question.text,
+          answer: selectedOption?.label || 'Not answered',
+          detail: selectedOption?.description || '',
+          score: Number(value || 0)
+        };
+      });
+      onComplete({ scores: answers, answerDetails });
     }
   };
 
   const handlePrevious = () => {
-    if (currentSection > 0) {
-      setCurrentSection(currentSection - 1);
+    if (currentQuestion > 0) {
+      setCurrentQuestion(currentQuestion - 1);
     }
   };
 
-  const currentSectionData = sections[currentSection];
-  const progress = ((currentSection + 1) / sections.length) * 100;
+  const progress = ((currentQuestion + 1) / questions.length) * 100;
 
   return (
-    <div className="min-h-screen bg-white py-8">
-      <div className="max-w-4xl mx-auto px-6">
-        {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-medium text-gray-600">
-              Step {currentSection + 1} of {sections.length}
-            </span>
-            <span className="text-sm font-medium" style={{ color: '#0078D4' }}>
-              {Math.round(progress)}% Complete
-            </span>
+    <div className="assessment-stage">
+      <motion.div
+        key={currentQuestion}
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -10 }}
+        className="assessment-card"
+      >
+        <div className="assessment-progress">
+          <div className="assessment-progress-labels">
+            <span>{activeQuestion.sectionTitle}</span>
+            <span>{currentQuestion + 1} / {questions.length}</span>
           </div>
-          <div className="w-full rounded-full h-2" style={{ backgroundColor: '#E8EEF4' }}>
+          <div className="assessment-progress-track">
             <motion.div
-              className="h-2 rounded-full"
-              style={{ 
-                background: 'linear-gradient(90deg, #0078D4, #38B6FF)',
-                width: `${progress}%`
-              }}
+              className="assessment-progress-fill"
               initial={{ width: 0 }}
               animate={{ width: `${progress}%` }}
-              transition={{ duration: 0.3 }}
+              transition={{ duration: 0.4 }}
             />
           </div>
         </div>
 
-        <motion.div
-          key={currentSection}
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -20 }}
-          transition={{ duration: 0.3 }}
-          className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8"
-        >
-          {/* Section Header */}
-          <div className="flex items-center mb-8">
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center mr-4" 
-                 style={{ background: 'linear-gradient(135deg, #0078D4, #38B6FF)' }}>
-              <SafeIcon icon={currentSectionData.icon} className="text-white text-xl" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold" style={{ color: '#2B2B2B' }}>
-                {currentSectionData.title}
-              </h2>
-              <p className="text-gray-600 mt-1">
-                Select the option that best describes your current situation
-              </p>
-            </div>
+        <div className="assessment-question-heading">
+          <div className="assessment-section-icon">
+            <SafeIcon icon={activeQuestion.sectionIcon} />
           </div>
+          <p>Select the option that best describes your current situation</p>
+          <h1>{activeQuestion.text}</h1>
+        </div>
 
-          {/* Questions */}
-          <div className="space-y-10">
-            {currentSectionData.questions.map((question, questionIndex) => (
-              <div key={questionIndex} className="border-b border-gray-100 pb-8 last:border-b-0">
-                <h3 className="text-lg font-medium mb-6" style={{ color: '#2B2B2B' }}>
-                  {question.text}
-                </h3>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                  {question.options.map((option) => {
-                    const isSelected = answers[`section_${currentSection}`]?.[`question_${questionIndex}`] === option.value;
-                    
-                    return (
-                      <motion.button
-                        key={option.value}
-                        type="button"
-                        onClick={() => handleAnswerChange(currentSection, questionIndex, option.value)}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className={`p-3 rounded-lg border-2 text-center transition-all cursor-pointer flex flex-col justify-center items-center min-h-[8rem] ${
-                          isSelected
-                            ? 'border-blue-500 text-blue-700 shadow-sm'
-                            : 'border-gray-200 hover:border-gray-300 text-gray-700'
-                        }`}
-                        style={{
-                          backgroundColor: isSelected ? '#F0F7FF' : '#F8FAFC'
-                        }}
-                      >
-                        <div className="font-bold text-base mb-1 break-words">{option.label}</div>
-                        <div className="text-xs leading-tight text-gray-500">{option.description}</div>
-                      </motion.button>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>
+        <div className="assessment-options">
+          {activeQuestion.options.map((option) => {
+            const selected = activeValue === option.value;
+            return (
+              <motion.button
+                key={option.value}
+                type="button"
+                onClick={() => handleAnswerChange(activeQuestion.sectionIndex, activeQuestion.questionIndex, option.value)}
+                whileTap={{ scale: 0.99 }}
+                className={`assessment-option ${selected ? 'is-selected' : ''}`}
+              >
+                <span className="assessment-option-marker">{selected ? '✓' : ''}</span>
+                <span>
+                  <strong>{option.label}</strong>
+                  <small>{option.description}</small>
+                </span>
+              </motion.button>
+            );
+          })}
+        </div>
 
-          {/* Navigation */}
-          <div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-100">
+        <div className="assessment-navigation">
             <motion.button
               type="button"
               onClick={handlePrevious}
-              disabled={currentSection === 0}
-              whileHover={{ scale: currentSection === 0 ? 1 : 1.02 }}
-              whileTap={{ scale: currentSection === 0 ? 1 : 0.98 }}
-              className={`flex items-center px-6 py-3 rounded-lg font-medium transition-all ${
-                currentSection === 0
-                  ? 'text-gray-400 cursor-not-allowed'
-                  : 'text-gray-700 hover:bg-gray-50'
-              }`}
+              disabled={currentQuestion === 0}
+              className="assessment-button assessment-button-secondary"
             >
               <SafeIcon icon={FiChevronLeft} className="mr-2" />
-              Previous
+              Back
             </motion.button>
 
             <motion.button
               type="button"
               onClick={handleNext}
-              disabled={!isCurrentSectionComplete()}
-              whileHover={{ scale: isCurrentSectionComplete() ? 1.02 : 1 }}
-              whileTap={{ scale: isCurrentSectionComplete() ? 0.98 : 1 }}
-              className={`flex items-center px-6 py-3 rounded-lg font-medium transition-all shadow-lg ${
-                isCurrentSectionComplete()
-                  ? 'text-white hover:shadow-xl'
-                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-              }`}
-              style={{
-                background: isCurrentSectionComplete() 
-                  ? 'linear-gradient(135deg, #0078D4, #38B6FF)' 
-                  : '#E5E7EB'
-              }}
+              disabled={!canProceed}
+              className="assessment-button assessment-button-primary"
             >
-              {currentSection === sections.length - 1 ? 'Complete Survey' : 'Next Section'}
+              {currentQuestion === questions.length - 1 ? 'Complete Assessment' : 'Continue'}
               <SafeIcon icon={FiChevronRight} className="ml-2" />
             </motion.button>
-          </div>
-        </motion.div>
-      </div>
+        </div>
+      </motion.div>
     </div>
   );
 };

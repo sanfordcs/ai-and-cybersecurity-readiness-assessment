@@ -62,23 +62,38 @@ const LeadCapture = ({ onSubmit }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6">
+    <div className="readiness-intro">
+      <div className="readiness-intro-grid">
+        <motion.section
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="readiness-intro-copy"
+        >
+          <p className="readiness-eyebrow">DataSolved Readiness Assessment</p>
+          <h1>AI readiness.<br /><span>Security confidence.</span></h1>
+          <p className="readiness-lede">See where your business is prepared to adopt AI, where security gaps could slow you down, and what to address first.</p>
+          <div className="readiness-trust-list">
+            <span>Confidential responses</span>
+            <span>About 7 minutes</span>
+            <span>Practical next steps</span>
+          </div>
+        </motion.section>
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="max-w-md w-full"
+        className="readiness-intro-card"
       >
-        <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+        <div>
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+            <div className="readiness-card-icon">
               <SafeIcon icon={FiIcons.FiShield} className="text-white text-2xl" />
             </div>
             <h1 className="text-2xl font-bold" style={{ color: '#2B2B2B' }}>
-              AI & Cybersecurity Readiness Check
+              Start your readiness check
             </h1>
             <p className="text-gray-600 leading-relaxed">
-              Start your free assessment. You will receive a personalized report with your score, recommendations, and next steps.
+              Answer 24 practical questions. You will receive your score, question responses, summary, and prioritized recommendations.
             </p>
           </div>
 
@@ -137,13 +152,14 @@ const LeadCapture = ({ onSubmit }) => {
               type="submit"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="w-full py-3 px-6 rounded-lg font-medium transition-all duration-200 shadow-lg bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800"
+              className="assessment-button assessment-button-primary w-full"
             >
               Start Assessment
             </motion.button>
           </form>
         </div>
       </motion.div>
+      </div>
     </div>
   );
 };

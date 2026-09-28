@@ -26,6 +26,25 @@ const parseAdminRecipients = () => {
   return configured?.length ? configured : DEFAULT_ADMIN_RECIPIENTS;
 };
 
+const buildAnswerRows = (answers) => {
+  if (!Array.isArray(answers) || answers.length === 0) {
+    return '<p>No question-level answers were included.</p>';
+  }
+
+  return answers.map((item, index) => `
+    <tr>
+      <td style="padding:10px;border-bottom:1px solid #dbe4e8;vertical-align:top;color:#60727d">${index + 1}</td>
+      <td style="padding:10px;border-bottom:1px solid #dbe4e8;vertical-align:top">
+        <strong>${escapeHtml(item.section || 'Assessment')}</strong><br>
+        ${escapeHtml(item.question || '')}
+      </td>
+      <td style="padding:10px;border-bottom:1px solid #dbe4e8;vertical-align:top">
+        <strong>${escapeHtml(item.answer || 'Not answered')}</strong>
+        ${item.detail ? `<br><span style="color:#60727d">${escapeHtml(item.detail)}</span>` : ''}
+      </td>
+    </tr>`).join('');
+};
+
 const sendResendEmail = async (apiKey, payload) => {
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -57,6 +76,11 @@ const buildReadinessEmails = (data, fromAddress, adminRecipients) => {
   const safeName = escapeHtml(name || "there");
   const safeOrganization = escapeHtml(organization);
   const safeRecipient = escapeHtml(recipient);
+  const answerRows = buildAnswerRows(data.answers);
+  const recommendations = Array.isArray(data.recommendations) && data.recommendations.length
+    ? `<ol>${data.recommendations.map((item) => `<li style="margin-bottom:8px">${escapeHtml(item)}</li>`).join('')}</ol>`
+    : '<p>No recommendations were generated.</p>';
+  const summary = escapeHtml(data.description || `Readiness level: ${data.levelName || 'Not specified'}`);
 
   return {
     user: {
@@ -69,7 +93,11 @@ const buildReadinessEmails = (data, fromAddress, adminRecipients) => {
           <p>Hi ${safeName},</p>
           <p>Thank you for completing DataSolved's AI and Cybersecurity Readiness Assessment.</p>
           <p><strong>Organization:</strong> ${safeOrganization}<br><strong>Score:</strong> ${score}/${maxScore} (${percentage}%)</p>
-          <p>Your results and recommendations remain available on the completed assessment page.</p>
+          <p><strong>Readiness level:</strong> ${escapeHtml(data.levelName || 'Not specified')}</p>
+          <h3>Summary</h3><p>${summary}</p>
+          <h3>Recommended next steps</h3>${recommendations}
+          <h3>Your answers</h3>
+          <table style="width:100%;border-collapse:collapse;font-size:13px"><tbody>${answerRows}</tbody></table>
           <p><a href="https://datasolved.com/meet" style="display:inline-block;background:#0078d4;color:#fff;padding:12px 20px;text-decoration:none;border-radius:6px">Schedule a readiness consultation</a></p>
           <p style="font-size:12px;color:#6b7280">DataSolved Consulting Group</p>
         </div>`,
@@ -87,6 +115,10 @@ const buildReadinessEmails = (data, fromAddress, adminRecipients) => {
           <p><strong>Email:</strong> ${safeRecipient}</p>
           <p><strong>Score:</strong> ${score}/${maxScore} (${percentage}%)</p>
           <p><strong>Readiness level:</strong> ${escapeHtml(data.levelName || "N/A")}</p>
+          <h3>Summary</h3><p>${summary}</p>
+          <h3>Recommended next steps</h3>${recommendations}
+          <h3>Question responses</h3>
+          <table style="width:100%;border-collapse:collapse;font-size:13px"><tbody>${answerRows}</tbody></table>
         </div>`,
     },
   };

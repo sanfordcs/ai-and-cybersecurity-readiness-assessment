@@ -60,12 +60,24 @@ test('accepts the browser field names used by an existing results page', async (
       totalScore: 29,
       max_score: 96,
       percentage: 30,
+      description: 'The organization has started preparing for AI adoption.',
+      recommendations: ['Create an AI governance policy.'],
+      answers: [{
+        section: 'AI Governance',
+        question: 'Do you have an AI policy?',
+        answer: 'Not yet',
+        detail: 'No written policy exists.',
+        score: 0,
+      }],
     }),
   });
 
   assert.equal(response.statusCode, 200);
   assert.equal(JSON.parse(response.body).success, true);
   assert.equal(requests.length, 2);
+  assert.match(requests[0].html, /Do you have an AI policy/);
+  assert.match(requests[0].html, /Create an AI governance policy/);
+  assert.match(requests[1].html, /Question responses/);
 });
 
 test('supports cybersecurity reports without Supabase or EmailJS', async () => {

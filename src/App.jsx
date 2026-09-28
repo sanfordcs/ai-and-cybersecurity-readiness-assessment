@@ -12,6 +12,7 @@ function App() {
   const [currentStep, setCurrentStep] = useState('lead'); // lead, survey, contact, results
   const [leadData, setLeadData] = useState({});
   const [surveyData, setSurveyData] = useState({});
+  const [answerDetails, setAnswerDetails] = useState([]);
   const [contactData, setContactData] = useState({});
   const [resultsData, setResultsData] = useState({});
 
@@ -21,7 +22,8 @@ function App() {
   };
 
   const handleSurveyComplete = (data) => {
-    setSurveyData(data);
+    setSurveyData(data.scores);
+    setAnswerDetails(data.answerDetails);
     setCurrentStep('contact');
   };
 
@@ -35,6 +37,7 @@ function App() {
       ...data, // contactData
       ...results,
       surveyData,
+      answers: answerDetails,
       organization: leadData.companyName,
       user_email: data.email || leadData.email,
       firstName: data.firstName,
@@ -50,7 +53,7 @@ function App() {
     });
 
     const emailDelivery = await sendEmailReport(fullReportData);
-    setResultsData({ ...results, emailDelivery });
+    setResultsData({ ...results, emailDelivery, answers: answerDetails, surveyData });
     setCurrentStep('results');
   };
 
@@ -453,7 +456,7 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="app-container">
       <AnimatePresence mode="wait">
         {currentStep === 'lead' && (
           <motion.div key="lead" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
@@ -481,7 +484,8 @@ function App() {
                 ...resultsData,
                 surveyData,
                 organization: leadData.companyName,
-                user_email: contactData.email || leadData.email
+                user_email: contactData.email || leadData.email,
+                answers: answerDetails
               })} 
             />
           </motion.div>

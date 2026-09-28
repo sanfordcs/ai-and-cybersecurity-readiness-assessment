@@ -156,6 +156,7 @@ const Results = ({ data, contactData, onGeneratePDF }) => {
       description: data.description,
       surveyData: data.surveyData,
       sectionScores: data.sectionScores,
+      answers: data.answers,
       phone: contactData.phone,
       companySize: contactData.companySize
     };
@@ -271,7 +272,7 @@ const Results = ({ data, contactData, onGeneratePDF }) => {
   const businessInsights = getBusinessInsights();
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div className="readiness-results min-h-screen py-12">
       <div className="max-w-6xl mx-auto px-6">
         {/* Debug Mode Toggle */}
         <div className="fixed top-4 right-4 z-50">

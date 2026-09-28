@@ -59,23 +59,23 @@ const FinalContact = ({ onSubmit }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-gray-50">
+    <div className="assessment-stage">
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="max-w-lg w-full"
+        className="assessment-card contact-card"
       >
-        <div className="bg-white rounded-2xl shadow-lg p-8">
+        <div>
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+            <div className="readiness-card-icon">
               <SafeIcon icon={FiCheck} className="text-white text-2xl" />
             </div>
             <h1 className="text-2xl font-bold" style={{ color: '#2B2B2B' }}>
-              Almost Done!
+              Where should we send your report?
             </h1>
             <p className="text-gray-600 leading-relaxed">
-              Complete your information to receive your personalized readiness report.
+              Your email will include every answer, your score, summary, and recommended next steps.
             </p>
           </div>
 
@@ -182,7 +182,7 @@ const FinalContact = ({ onSubmit }) => {
               type="submit"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="w-full py-3 px-6 rounded-lg font-medium transition-all duration-200 shadow-lg bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800"
+              className="assessment-button assessment-button-primary w-full"
             >
               Generate My Readiness Report
             </motion.button>
