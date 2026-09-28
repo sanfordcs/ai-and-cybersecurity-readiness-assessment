@@ -43,8 +43,8 @@ const sendResendEmail = async (apiKey, payload) => {
 const buildReadinessEmails = (data, fromAddress, adminRecipients) => {
   const recipient = data.user_email || data.email;
   const name = `${data.firstName || ""} ${data.lastName || ""}`.trim();
-  const organization = data.organization;
-  const score = Number(data.score);
+  const organization = data.organization || data.companyName;
+  const score = Number(data.score ?? data.totalScore);
   const maxScore = Number(data.max_score || 96);
   const percentage = Number.isFinite(Number(data.percentage))
     ? Number(data.percentage)

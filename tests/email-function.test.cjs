@@ -42,6 +42,32 @@ test('accepts a valid zero score and sends both readiness emails', async () => {
   assert.deepEqual(requests[1].to, ['ssanford@datasolved.com', 'sales@datasolved.com']);
 });
 
+test('accepts the browser field names used by an existing results page', async () => {
+  const requests = [];
+  global.fetch = async (_url, options) => {
+    requests.push(JSON.parse(options.body));
+    return { ok: true, text: async () => JSON.stringify({ id: 'email-id' }) };
+  };
+
+  process.env.RESEND_API_KEY = 'test-key';
+  const response = await loadHandler()({
+    httpMethod: 'POST',
+    body: JSON.stringify({
+      companyName: 'DataSolved',
+      email: 'test@example.com',
+      firstName: 'Website',
+      lastName: 'Visitor',
+      totalScore: 29,
+      max_score: 96,
+      percentage: 30,
+    }),
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(JSON.parse(response.body).success, true);
+  assert.equal(requests.length, 2);
+});
+
 test('supports cybersecurity reports without Supabase or EmailJS', async () => {
   process.env.RESEND_API_KEY = 'test-key';
   const requests = [];

@@ -5,6 +5,7 @@ import Survey from './components/Survey';
 import FinalContact from './components/FinalContact';
 import Results from './components/Results';
 import { sendReadinessReport } from './lib/emailService';
+import { jsPDF } from 'jspdf';
 import './App.css';
 
 function App() {
@@ -182,8 +183,6 @@ function App() {
   const generatePDFReport = async (data) => {
     console.log('📄 Generating enhanced PDF for:', data);
     try {
-      const { jsPDF } = await import('jspdf');
-      
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
@@ -476,7 +475,14 @@ function App() {
             <Results 
               data={resultsData} 
               contactData={{ ...leadData, ...contactData }} 
-              onGeneratePDF={() => generatePDFReport({ ...leadData, ...contactData, ...resultsData, surveyData })} 
+              onGeneratePDF={() => generatePDFReport({
+                ...leadData,
+                ...contactData,
+                ...resultsData,
+                surveyData,
+                organization: leadData.companyName,
+                user_email: contactData.email || leadData.email
+              })} 
             />
           </motion.div>
         )}
