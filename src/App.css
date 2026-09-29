@@ -85,6 +85,7 @@ select {
 :root {
   --readiness-bg: #101f24;
   --readiness-panel: rgba(8, 18, 24, 0.92);
+  --readiness-panel-soft: rgba(255, 255, 255, 0.11);
   --readiness-accent: #27c3a3;
   --readiness-accent-hover: #3fd6b5;
   --readiness-text: #f4f7fa;
@@ -94,7 +95,12 @@ select {
 
 body, #root, .app-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #152a36 0%, var(--readiness-bg) 100%);
+  background:
+    linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px),
+    radial-gradient(circle at 12% 8%, rgba(39,195,163,.12), transparent 32rem),
+    linear-gradient(135deg, #152a36 0%, var(--readiness-bg) 100%);
+  background-size: 40px 40px, 40px 40px, auto, auto;
 }
 
 .readiness-intro {
@@ -227,7 +233,11 @@ body, #root, .app-container {
 .assessment-button-secondary { color: #d7e4ea; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); }
 .assessment-button-secondary:disabled { visibility: hidden; }
 
-.readiness-results { background: linear-gradient(135deg, #152a36 0%, #101f24 100%); color: var(--readiness-text); }
+.readiness-results {
+  background: transparent;
+  color: var(--readiness-text);
+}
+.readiness-results > div { max-width: 1260px; }
 .readiness-results .bg-white { background: rgba(8,18,24,.9) !important; border: 1px solid rgba(255,255,255,.22); box-shadow: 0 22px 60px rgba(0,0,0,.3); }
 .readiness-results .text-gray-800,
 .readiness-results .text-gray-700,
@@ -240,6 +250,52 @@ body, #root, .app-container {
 .readiness-results .bg-blue-50 { background: rgba(39,195,163,.1) !important; }
 .readiness-results .border-gray-100,
 .readiness-results .border-gray-300 { border-color: rgba(255,255,255,.2) !important; }
+.readiness-results .bg-gray-200 { background: rgba(255,255,255,.13) !important; }
+.readiness-results .bg-blue-500,
+.readiness-results .bg-blue-600,
+.readiness-results .bg-blue-700,
+.readiness-results .bg-green-500 { background: var(--readiness-accent) !important; }
+.readiness-results .bg-yellow-500 { background: #f5ae2b !important; }
+.readiness-results .bg-red-500 { background: #ff5964 !important; }
+.readiness-results .text-blue-600,
+.readiness-results .text-blue-700,
+.readiness-results .text-green-500 { color: var(--readiness-accent) !important; }
+.readiness-results .bg-gradient-to-br,
+.readiness-results .bg-gradient-to-r {
+  background-image: none !important;
+  background-color: var(--readiness-accent) !important;
+  color: #081218 !important;
+}
+.readiness-results .rounded-2xl { border-radius: 18px; }
+.readiness-results .rounded-xl,
+.readiness-results .rounded-lg { border-radius: 11px; }
+.readiness-results .shadow-lg { box-shadow: 0 22px 60px rgba(0,0,0,.3); }
+.readiness-results a,
+.readiness-results button { font-weight: 750; }
+.readiness-results a:hover,
+.readiness-results button:hover { border-color: rgba(39,195,163,.7) !important; }
+.readiness-results svg circle:first-child { stroke: rgba(255,255,255,.15); }
+.readiness-results svg linearGradient stop:first-child,
+.readiness-results svg linearGradient stop:last-child { stop-color: var(--readiness-accent); }
+.readiness-results .fixed .bg-white { background: #14272f !important; }
+
+@media print {
+  body, #root, .app-container, .readiness-results {
+    background: #fff !important;
+    color: #111 !important;
+  }
+  .readiness-results .bg-white {
+    background: #fff !important;
+    border-color: #bbb !important;
+    box-shadow: none !important;
+  }
+  .readiness-results h1,
+  .readiness-results h2,
+  .readiness-results h3,
+  .readiness-results h4,
+  .readiness-results p,
+  .readiness-results span { color: #111 !important; }
+}
 
 @media (max-width: 860px) {
   .readiness-intro { padding: 36px 18px 48px; }
