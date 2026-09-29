@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import * as FiIcons from 'react-icons/fi';
 import SafeIcon from '../common/SafeIcon';
-import { sendReadinessReport, testEmailConfiguration, testAPIConnectivity } from '../lib/emailService';
+import { sendReadinessReport } from '../lib/emailService';
 
 const {
   FiAward,
@@ -15,9 +15,7 @@ const {
   FiTrendingUp,
   FiShield,
   FiUsers,
-  FiTarget,
-  FiBug,
-  FiSettings
+  FiTarget
 } = FiIcons;
 
 const Results = ({ data, contactData, onGeneratePDF }) => {
@@ -26,17 +24,8 @@ const Results = ({ data, contactData, onGeneratePDF }) => {
     return data.emailDelivery.userSent && data.emailDelivery.adminSent ? 'success' : 'failure';
   });
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
-  const [debugMode, setDebugMode] = useState(false);
-  const [debugLogs, setDebugLogs] = useState([]);
-  const [testResults, setTestResults] = useState(null);
 
   const { percentage, levelName, description, recommendations, sectionScores } = data;
-
-  const addDebugLog = (message, type = 'info') => {
-    const timestamp = new Date().toLocaleTimeString();
-    setDebugLogs(prev => [...prev, { timestamp, message, type }]);
-    console.log(`[${type.toUpperCase()}] ${timestamp}: ${message}`);
-  };
 
   const CircularProgress = ({ percentage }) => {
     const radius = 80;
@@ -138,8 +127,6 @@ const Results = ({ data, contactData, onGeneratePDF }) => {
   const handleResendEmail = async () => {
     console.log('🔄 Email resend requested');
     setEmailStatus('sending');
-    setDebugLogs([]);
-    addDebugLog('Starting email resend process', 'info');
 
     const emailData = {
       organization: contactData.companyName,
@@ -161,67 +148,17 @@ const Results = ({ data, contactData, onGeneratePDF }) => {
       companySize: contactData.companySize
     };
 
-    addDebugLog(`Email data prepared for: ${emailData.user_email}`, 'info');
-    addDebugLog(`Organization: ${emailData.organization}`, 'info');
-    addDebugLog(`Score: ${emailData.score}/${emailData.max_score}`, 'info');
-
     try {
       const results = await sendReadinessReport(emailData);
-      addDebugLog(`EmailIt API returned: ${JSON.stringify(results)}`, 'info');
 
       if (results.userSent) {
         setEmailStatus('success');
-        addDebugLog('[SUCCESS] User email sent', 'success');
       } else {
         setEmailStatus('failure');
-        addDebugLog(`[ERROR] User email failed: ${results.error}`, 'error');
       }
     } catch (error) {
       console.error('❌ Error resending email:', error);
-      addDebugLog(`Exception caught: ${error.message}`, 'error');
       setEmailStatus('failure');
-    }
-  };
-
-  const handleTestEmail = async () => {
-    addDebugLog('Starting EmailIt API configuration test', 'info');
-    setTestResults({ testing: true });
-
-    try {
-      addDebugLog('Testing EmailIt API connectivity...', 'info');
-      const connectivityAvailable = await testAPIConnectivity();
-      addDebugLog(
-        `EmailIt API connectivity: ${connectivityAvailable ? 'AVAILABLE' : 'UNAVAILABLE'}`,
-        connectivityAvailable ? 'success' : 'error'
-      );
-
-      addDebugLog('Testing EmailIt API configuration...', 'info');
-      const configResult = await testEmailConfiguration();
-      addDebugLog(
-        `Configuration: ${configResult.success ? 'VALID' : 'INVALID'}`,
-        configResult.success ? 'success' : 'error'
-      );
-
-      if (!configResult.success) {
-        addDebugLog(`Configuration error: ${configResult.error}`, 'error');
-      }
-
-      setTestResults({
-        testing: false,
-        connectivityAvailable,
-        configValid: configResult.success,
-        error: configResult.error,
-        timestamp: new Date().toISOString()
-      });
-
-      addDebugLog('EmailIt API test completed', 'info');
-    } catch (error) {
-      addDebugLog(`EmailIt API test failed: ${error.message}`, 'error');
-      setTestResults({
-        testing: false,
-        error: error.message,
-        timestamp: new Date().toISOString()
-      });
     }
   };
 
@@ -274,146 +211,6 @@ const Results = ({ data, contactData, onGeneratePDF }) => {
   return (
     <div className="readiness-results min-h-screen py-12">
       <div className="max-w-6xl mx-auto px-6">
-        {/* Debug Mode Toggle */}
-        <div className="fixed top-4 right-4 z-50">
-          <button
-            onClick={() => setDebugMode(!debugMode)}
-            className="bg-gray-800 text-white p-3 rounded-lg shadow-lg hover:bg-gray-700 transition-colors"
-            title="Toggle Debug Mode"
-          >
-            <SafeIcon icon={FiBug} className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Debug Panel */}
-        {debugMode && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full max-h-[80vh] overflow-hidden">
-              <div className="bg-gray-800 text-white p-4 flex justify-between items-center">
-                <h3 className="text-lg font-bold">📧 EmailIt API Debug Console</h3>
-                <button
-                  onClick={() => setDebugMode(false)}
-                  className="text-white hover:text-gray-300"
-                >
-                  ✕
-                </button>
-              </div>
-
-              <div className="p-6 overflow-y-auto max-h-[60vh]">
-                {/* Test Controls */}
-                <div className="mb-6 p-4 bg-gray-100 rounded-lg">
-                  <h4 className="font-semibold mb-3">EmailIt API Configuration Test</h4>
-                  <div className="flex gap-3">
-                    <button
-                      onClick={handleTestEmail}
-                      disabled={testResults?.testing}
-                      className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:bg-gray-400"
-                    >
-                      {testResults?.testing ? 'Testing...' : 'Run Configuration Test'}
-                    </button>
-                    <button
-                      onClick={handleResendEmail}
-                      className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-                    >
-                      Test Send Email
-                    </button>
-                    <button
-                      onClick={() => setDebugLogs([])}
-                      className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700"
-                    >
-                      Clear Logs
-                    </button>
-                  </div>
-
-                  {testResults && !testResults.testing && (
-                    <div className="mt-4 p-3 bg-white rounded border">
-                      <h5 className="font-semibold mb-2">Test Results:</h5>
-                      <div className="text-sm space-y-1">
-                        <div>
-                          EmailIt API Connectivity:{' '}
-                          <span className={testResults.connectivityAvailable ? 'text-green-600' : 'text-red-600'}>
-                            {testResults.connectivityAvailable ? '✅ Available' : '❌ Unavailable'}
-                          </span>
-                        </div>
-                        <div>
-                          Configuration:{' '}
-                          <span className={testResults.configValid ? 'text-green-600' : 'text-red-600'}>
-                            {testResults.configValid ? '✅ Valid' : '❌ Invalid'}
-                          </span>
-                        </div>
-                        {testResults.error && (
-                          <div className="text-red-600">Error: {testResults.error}</div>
-                        )}
-                        <div className="text-gray-500 text-xs">
-                          Tested: {testResults.timestamp}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Debug Logs */}
-                <div className="mb-6">
-                  <h4 className="font-semibold mb-3">Debug Logs</h4>
-                  <div className="bg-black text-green-400 p-4 rounded-lg font-mono text-xs overflow-y-auto max-h-64">
-                    {debugLogs.length === 0 ? (
-                      <div className="text-gray-500">
-                        No logs yet. Try running a test or sending an email.
-                      </div>
-                    ) : (
-                      debugLogs.map((log, index) => (
-                        <div key={index} className="mb-1">
-                          <span className="text-gray-500">[{log.timestamp}]</span>{' '}
-                          <span
-                            className={
-                              log.type === 'error'
-                                ? 'text-red-400'
-                                : log.type === 'success'
-                                ? 'text-green-400'
-                                : log.type === 'warning'
-                                ? 'text-yellow-400'
-                                : 'text-blue-400'
-                            }
-                          >
-                            [{log.type.toUpperCase()}]
-                          </span>{' '}
-                          {log.message}
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-
-                {/* Configuration Info */}
-                <div className="p-4 bg-gray-100 rounded-lg">
-                  <h4 className="font-semibold mb-3">📧 Using EmailIt API (Browser-Safe)</h4>
-                  <div className="text-sm space-y-1">
-                    <div>
-                      <strong>API Endpoint:</strong> https://api.emailit.com/v1/send
-                    </div>
-                    <div>
-                      <strong>From:</strong> hello@datasolved.com
-                    </div>
-                    <div>
-                      <strong>Admin Email:</strong> ssanford@datasolved.com
-                    </div>
-                    <div>
-                      <strong>User Email:</strong> {contactData.email}
-                    </div>
-                    <div>
-                      <strong>CC:</strong> info@centricartistry.com
-                    </div>
-                    <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded">
-                      <strong>✅ BROWSER-COMPATIBLE:</strong> EmailIt's HTTP API works directly in the browser.
-                      No backend server required!
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Email Status Modal */}
         {emailStatus !== 'idle' && (
           <motion.div
