@@ -3,12 +3,14 @@ import { motion } from 'framer-motion';
 import * as FiIcons from 'react-icons/fi';
 import SafeIcon from '../common/SafeIcon';
 
-const { FiUser, FiPhone, FiUsers, FiCheck } = FiIcons;
+const { FiUser, FiPhone, FiUsers, FiCheck, FiMail, FiBuilding } = FiIcons;
 
 const FinalContact = ({ onSubmit }) => {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
+    companyName: '',
+    email: '',
     companySize: '',
     phone: '',
     agreedToReceiveReport: false
@@ -33,6 +35,14 @@ const FinalContact = ({ onSubmit }) => {
     }
     if (!formData.lastName.trim()) {
       newErrors.lastName = 'Last name is required';
+    }
+    if (!formData.companyName.trim()) {
+      newErrors.companyName = 'Company name is required';
+    }
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
     }
     if (!formData.companySize) {
       newErrors.companySize = 'Company size is required';
@@ -71,6 +81,7 @@ const FinalContact = ({ onSubmit }) => {
             <div className="readiness-card-icon">
               <SafeIcon icon={FiCheck} className="text-white text-2xl" />
             </div>
+
             <h1 className="text-2xl font-bold" style={{ color: '#2B2B2B' }}>
               Where should we send your report?
             </h1>
@@ -80,6 +91,46 @@ const FinalContact = ({ onSubmit }) => {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Company Name *
+              </label>
+              <div className="relative">
+                <SafeIcon icon={FiBuilding} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  name="companyName"
+                  value={formData.companyName}
+                  onChange={handleChange}
+                  className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${errors.companyName ? 'border-red-300' : 'border-gray-300'}`}
+                  placeholder="Your Company Name"
+                />
+              </div>
+              {errors.companyName && (
+                <p className="mt-1 text-sm text-red-600">{errors.companyName}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Email Address *
+              </label>
+              <div className="relative">
+                <SafeIcon icon={FiMail} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${errors.email ? 'border-red-300' : 'border-gray-300'}`}
+                  placeholder="you@example.com"
+                />
+              </div>
+              {errors.email && (
+                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+              )}
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
