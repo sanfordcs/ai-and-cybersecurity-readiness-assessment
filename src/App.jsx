@@ -38,8 +38,8 @@ function App() {
       ...results,
       surveyData,
       answers: answerDetails,
-      organization: leadData.companyName,
-      user_email: data.email || leadData.email,
+      organization: data.companyName,
+      user_email: data.email,
       firstName: data.firstName,
       lastName: data.lastName
     };
@@ -483,8 +483,8 @@ function App() {
                 ...contactData,
                 ...resultsData,
                 surveyData,
-                organization: leadData.companyName,
-                user_email: contactData.email || leadData.email,
+                organization: contactData.companyName,
+                user_email: contactData.email,
                 answers: answerDetails
               })} 
             />
