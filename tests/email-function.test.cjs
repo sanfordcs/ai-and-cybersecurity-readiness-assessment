@@ -40,6 +40,7 @@ test('accepts a valid zero score and sends both readiness emails', async () => {
   });
   assert.equal(requests.length, 2);
   assert.equal(requests[0].attachments[0].filename, 'DataSolved-AI-Readiness-Report.pdf');
+  assert.equal(requests[0].attachments[0].content_type, 'application/pdf');
   assert.ok(requests[0].attachments[0].content.length > 100);
   assert.equal(requests[1].attachments[0].filename, 'DataSolved-AI-Readiness-Report.pdf');
   assert.deepEqual(requests[1].to, ['ssanford@datasolved.com', 'sales@datasolved.com']);
