@@ -303,6 +303,71 @@ body, #root, .app-container {
   .readiness-intro-copy h1 { font-size: 40px; }
 }
 
+@media (max-height: 850px) and (min-width: 521px) {
+  .assessment-stage {
+    padding: 12px 24px 20px;
+  }
+
+  .assessment-stage .assessment-card {
+    padding: 20px 24px;
+  }
+
+  .assessment-progress {
+    margin-bottom: 15px;
+  }
+
+  .assessment-question-heading {
+    margin-bottom: 13px;
+  }
+
+  .assessment-section-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+  }
+
+  .assessment-question-heading p {
+    margin: 8px 0 5px;
+    font-size: 9px;
+  }
+
+  .assessment-question-heading h1 {
+    font-size: 17px;
+    line-height: 1.3;
+  }
+
+  .assessment-options {
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+
+  .assessment-option {
+    gap: 10px;
+    min-height: 48px;
+    padding: 7px 12px;
+  }
+
+  .assessment-option strong {
+    font-size: 13.5px;
+    line-height: 1.2;
+  }
+
+  .assessment-option small {
+    margin-top: 1px;
+    font-size: 11px;
+    line-height: 1.2;
+  }
+
+  .assessment-navigation {
+    gap: 7px;
+  }
+
+  .assessment-button {
+    min-height: 40px;
+    padding: 9px 16px;
+  }
+}
+
 @media (max-width: 520px) {
   .readiness-intro-card, .assessment-card { padding: 24px 18px; border-radius: 15px; }
   .assessment-stage { padding: 16px 12px 42px; }
