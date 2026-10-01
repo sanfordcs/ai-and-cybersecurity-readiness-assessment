@@ -486,7 +486,7 @@ const Results = ({ data, contactData, onGeneratePDF }) => {
             </motion.button>
           </div>
           <button
-            onClick={() => setEmailStatus('sending')}
+            onClick={handleResendEmail}
             className="mt-4 text-sm text-blue-600 hover:text-blue-700 underline"
           >
             <SafeIcon icon={FiMail} className="inline mr-1" />

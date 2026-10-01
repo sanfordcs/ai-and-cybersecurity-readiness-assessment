@@ -9,6 +9,9 @@ export const sendReadinessReport = async (data) => {
   console.log('🚀 Starting email send process via Netlify function');
   console.log('📍 Using endpoint: /.netlify/functions/sendEmail');
 
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), 30000);
+
   try {
     console.log('📧 Sending request to serverless function');
     console.log('📤 Request data:', {
@@ -24,7 +27,8 @@ export const sendReadinessReport = async (data) => {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
+      signal: controller.signal
     });
 
     console.log('📊 Response Status:', response.status);
@@ -59,7 +63,11 @@ export const sendReadinessReport = async (data) => {
     return {
       adminSent: false,
       userSent: false,
-      error: error.message
+      error: error.name === 'AbortError'
+        ? 'Email service timed out. Please try again.'
+        : error.message
     };
+  } finally {
+    window.clearTimeout(timeoutId);
   }
 };
