@@ -16,6 +16,16 @@ function App() {
   const [contactData, setContactData] = useState({});
   const [resultsData, setResultsData] = useState({});
 
+  const handleRestart = () => {
+    setCurrentStep('lead');
+    setLeadData({});
+    setSurveyData({});
+    setAnswerDetails([]);
+    setContactData({});
+    setResultsData({});
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handleLeadSubmit = (data) => {
     setLeadData(data);
     setCurrentStep('survey');
@@ -478,6 +488,7 @@ function App() {
             <Results 
               data={resultsData} 
               contactData={{ ...leadData, ...contactData }} 
+              onRestart={handleRestart}
               onGeneratePDF={() => generatePDFReport({
                 ...leadData,
                 ...contactData,

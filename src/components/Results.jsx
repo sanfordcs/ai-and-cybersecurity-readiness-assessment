@@ -9,6 +9,8 @@ const {
   FiExternalLink,
   FiFileText,
   FiDownload,
+  FiPrinter,
+  FiRefreshCw,
   FiCheckCircle,
   FiAlertCircle,
   FiMail,
@@ -18,7 +20,7 @@ const {
   FiTarget
 } = FiIcons;
 
-const Results = ({ data, contactData, onGeneratePDF }) => {
+const Results = ({ data, contactData, onGeneratePDF, onRestart }) => {
   const [emailStatus, setEmailStatus] = useState(() => {
     if (!data.emailDelivery) return 'idle';
     return data.emailDelivery.userSent && data.emailDelivery.adminSent ? 'success' : 'failure';
@@ -483,6 +485,24 @@ const Results = ({ data, contactData, onGeneratePDF }) => {
             >
               <SafeIcon icon={FiDownload} className="mr-2" />
               {isGeneratingPDF ? 'Generating...' : 'Download My Report'}
+            </motion.button>
+            <motion.button
+              onClick={() => window.print()}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="inline-flex items-center justify-center px-8 py-4 border-2 border-gray-300 text-gray-700 font-medium rounded-lg hover:border-gray-400 hover:bg-gray-50 transition-all duration-200"
+            >
+              <SafeIcon icon={FiPrinter} className="mr-2" />
+              Print Report
+            </motion.button>
+            <motion.button
+              onClick={onRestart}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="inline-flex items-center justify-center px-8 py-4 border-2 border-gray-300 text-gray-700 font-medium rounded-lg hover:border-gray-400 hover:bg-gray-50 transition-all duration-200"
+            >
+              <SafeIcon icon={FiRefreshCw} className="mr-2" />
+              New Assessment
             </motion.button>
           </div>
           <button

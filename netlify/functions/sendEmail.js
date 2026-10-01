@@ -1,3 +1,5 @@
+const { jsPDF } = require("jspdf");
+
 const DEFAULT_ADMIN_RECIPIENTS = ["ssanford@datasolved.com", "sales@datasolved.com"];
 
 const jsonResponse = (statusCode, body) => ({
@@ -43,6 +45,72 @@ const buildAnswerRows = (answers) => {
         ${item.detail ? `<br><span style="color:#60727d">${escapeHtml(item.detail)}</span>` : ''}
       </td>
     </tr>`).join('');
+};
+
+const buildReadinessPdfAttachment = (data) => {
+  const pdf = new jsPDF({ unit: "pt", format: "letter" });
+  const organization = data.organization || data.companyName || "Organization";
+  const score = Number(data.score ?? data.totalScore ?? 0);
+  const maxScore = Number(data.max_score || 96);
+  const percentage = Number.isFinite(Number(data.percentage))
+    ? Number(data.percentage)
+    : Math.round((score / maxScore) * 100);
+  const recommendations = Array.isArray(data.recommendations) ? data.recommendations : [];
+  const answers = Array.isArray(data.answers) ? data.answers : [];
+  const margin = 48;
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+  const contentWidth = pageWidth - margin * 2;
+  let y = 54;
+
+  const ensureSpace = (height = 28) => {
+    if (y + height > pageHeight - margin) {
+      pdf.addPage();
+      y = margin;
+    }
+  };
+  const writeWrapped = (text, size = 10, gap = 6) => {
+    pdf.setFontSize(size);
+    const lines = pdf.splitTextToSize(String(text || ""), contentWidth);
+    ensureSpace(lines.length * (size + 3) + gap);
+    pdf.text(lines, margin, y);
+    y += lines.length * (size + 3) + gap;
+  };
+
+  pdf.setTextColor(15, 31, 36);
+  pdf.setFont("helvetica", "bold");
+  writeWrapped("DataSolved AI & Cybersecurity Readiness Report", 20, 14);
+  pdf.setFont("helvetica", "normal");
+  writeWrapped(`Prepared for: ${organization}`, 11, 4);
+  writeWrapped(`Score: ${score}/${maxScore} (${percentage}%)`, 11, 4);
+  writeWrapped(`Readiness level: ${data.levelName || "Not specified"}`, 11, 14);
+
+  pdf.setFont("helvetica", "bold");
+  writeWrapped("Executive Summary", 14, 7);
+  pdf.setFont("helvetica", "normal");
+  writeWrapped(data.description || "No summary was generated.", 10, 14);
+
+  pdf.setFont("helvetica", "bold");
+  writeWrapped("Recommended Next Steps", 14, 7);
+  pdf.setFont("helvetica", "normal");
+  recommendations.forEach((item, index) => writeWrapped(`${index + 1}. ${item}`, 10, 6));
+
+  ensureSpace(42);
+  pdf.setFont("helvetica", "bold");
+  writeWrapped("Assessment Responses", 14, 7);
+  pdf.setFont("helvetica", "normal");
+  answers.forEach((item, index) => {
+    writeWrapped(`${index + 1}. ${item.question || "Assessment question"}`, 10, 3);
+    pdf.setTextColor(35, 120, 104);
+    writeWrapped(`Response: ${item.answer || "Not answered"}${item.detail ? ` - ${item.detail}` : ""}`, 9, 8);
+    pdf.setTextColor(15, 31, 36);
+  });
+
+  const safeOrganization = String(organization).replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "") || "readiness";
+  return {
+    filename: `${safeOrganization}-AI-Readiness-Report.pdf`,
+    content: Buffer.from(pdf.output("arraybuffer")).toString("base64"),
+  };
 };
 
 const sendResendEmail = async (apiKey, payload) => {
@@ -205,6 +273,11 @@ const handler = async (event) => {
     const emails = data.assessmentType === "cybersecurity"
       ? buildCybersecurityEmails(data, fromAddress, adminRecipients)
       : buildReadinessEmails(data, fromAddress, adminRecipients);
+    if (data.assessmentType !== "cybersecurity") {
+      const reportAttachment = buildReadinessPdfAttachment(data);
+      if (emails.user) emails.user.attachments = [reportAttachment];
+      emails.admin.attachments = [reportAttachment];
+    }
     const [userResult, adminResult] = await Promise.allSettled([
       emails.user ? sendResendEmail(apiKey, emails.user) : Promise.resolve({ skipped: true }),
       sendResendEmail(apiKey, emails.admin),
@@ -235,4 +308,4 @@ const handler = async (event) => {
   }
 };
 
-module.exports = { handler, buildReadinessEmails, buildCybersecurityEmails };
+module.exports = { handler, buildReadinessEmails, buildCybersecurityEmails, buildReadinessPdfAttachment };
