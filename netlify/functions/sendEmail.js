@@ -110,6 +110,7 @@ const buildReadinessPdfAttachment = (data) => {
   return {
     filename: `${safeOrganization}-AI-Readiness-Report.pdf`,
     content: Buffer.from(pdf.output("arraybuffer")).toString("base64"),
+    content_type: "application/pdf",
   };
 };
 
@@ -156,18 +157,33 @@ const buildReadinessEmails = (data, fromAddress, adminRecipients) => {
       to: [recipient],
       subject: "Your AI & Cybersecurity Readiness Assessment Results",
       html: `
-        <div style="max-width:600px;margin:auto;padding:30px;background:#f7f9fc;font-family:Arial,sans-serif;color:#1f2937;line-height:1.6">
-          <h2 style="color:#0078d4">Your readiness results</h2>
-          <p>Hi ${safeName},</p>
-          <p>Thank you for completing DataSolved's AI and Cybersecurity Readiness Assessment.</p>
-          <p><strong>Organization:</strong> ${safeOrganization}<br><strong>Score:</strong> ${score}/${maxScore} (${percentage}%)</p>
-          <p><strong>Readiness level:</strong> ${escapeHtml(data.levelName || 'Not specified')}</p>
-          <h3>Summary</h3><p>${summary}</p>
-          <h3>Recommended next steps</h3>${recommendations}
-          <h3>Your answers</h3>
-          <table style="width:100%;border-collapse:collapse;font-size:13px"><tbody>${answerRows}</tbody></table>
-          <p><a href="https://datasolved.com/meet" style="display:inline-block;background:#0078d4;color:#fff;padding:12px 20px;text-decoration:none;border-radius:6px">Schedule a readiness consultation</a></p>
-          <p style="font-size:12px;color:#6b7280">DataSolved Consulting Group</p>
+        <div style="margin:0;padding:28px 12px;background:#0f2028;font-family:Arial,sans-serif;color:#20313a;line-height:1.55">
+          <div style="max-width:680px;margin:auto;background:#ffffff;border-radius:18px;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.24)">
+            <div style="padding:32px;background:#17323c;color:#f4f8fa;border-bottom:4px solid #27c3a3">
+              <p style="margin:0 0 10px;color:#62ddc3;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase">DataSolved Readiness Report</p>
+              <h1 style="margin:0;font-size:28px;line-height:1.2">Your AI and cybersecurity readiness results</h1>
+              <p style="margin:12px 0 0;color:#d7e5ea">Prepared for ${safeOrganization}</p>
+            </div>
+            <div style="padding:30px">
+              <p style="margin-top:0">Hi ${safeName},</p>
+              <p>Thank you for completing the assessment. Your detailed PDF report is attached for your records.</p>
+              <table role="presentation" style="width:100%;border-collapse:separate;border-spacing:10px 0;margin:22px -10px">
+                <tr>
+                  <td style="width:33%;padding:18px;background:#e9f9f5;border-radius:12px;text-align:center"><strong style="display:block;color:#167b68;font-size:24px">${percentage}%</strong><span style="font-size:12px;color:#52656e">Readiness score</span></td>
+                  <td style="width:33%;padding:18px;background:#f1f5f7;border-radius:12px;text-align:center"><strong style="display:block;color:#17323c;font-size:20px">${escapeHtml(data.levelName || 'Not specified')}</strong><span style="font-size:12px;color:#52656e">Readiness level</span></td>
+                  <td style="width:33%;padding:18px;background:#f1f5f7;border-radius:12px;text-align:center"><strong style="display:block;color:#17323c;font-size:20px">${score}/${maxScore}</strong><span style="font-size:12px;color:#52656e">Points</span></td>
+                </tr>
+              </table>
+              <h2 style="margin:28px 0 8px;color:#17323c;font-size:18px">Executive summary</h2>
+              <p style="margin-top:0;color:#435861">${summary}</p>
+              <h2 style="margin:28px 0 8px;color:#17323c;font-size:18px">Recommended next steps</h2>
+              <div style="padding:18px 22px;background:#f1f8f7;border-left:4px solid #27c3a3;border-radius:10px">${recommendations}</div>
+              <h2 style="margin:28px 0 8px;color:#17323c;font-size:18px">Your responses</h2>
+              <table style="width:100%;border-collapse:collapse;font-size:13px"><tbody>${answerRows}</tbody></table>
+              <p style="margin:30px 0 8px"><a href="https://datasolved.com/meet" style="display:inline-block;background:#27c3a3;color:#071a20;padding:13px 22px;text-decoration:none;border-radius:9px;font-weight:700">Schedule a readiness consultation</a></p>
+            </div>
+            <div style="padding:18px 30px;background:#eef3f5;color:#63747c;font-size:12px">DataSolved Consulting Group · Confidential assessment report</div>
+          </div>
         </div>`,
     },
     admin: {
@@ -176,15 +192,15 @@ const buildReadinessEmails = (data, fromAddress, adminRecipients) => {
       reply_to: recipient,
       subject: "New AI & Cybersecurity Readiness Submission",
       html: `
-        <div style="max-width:600px;margin:auto;padding:30px;font-family:Arial,sans-serif;color:#1f2937;line-height:1.6">
-          <h2 style="color:#0078d4">New readiness assessment</h2>
+        <div style="max-width:700px;margin:auto;padding:30px;background:#f3f7f8;border-top:5px solid #27c3a3;font-family:Arial,sans-serif;color:#20313a;line-height:1.6">
+          <h2 style="color:#17323c">New AI readiness assessment</h2>
           <p><strong>Name:</strong> ${escapeHtml(name || "N/A")}</p>
           <p><strong>Organization:</strong> ${safeOrganization}</p>
           <p><strong>Email:</strong> ${safeRecipient}</p>
           <p><strong>Score:</strong> ${score}/${maxScore} (${percentage}%)</p>
           <p><strong>Readiness level:</strong> ${escapeHtml(data.levelName || "N/A")}</p>
-          <h3>Summary</h3><p>${summary}</p>
-          <h3>Recommended next steps</h3>${recommendations}
+          <div style="padding:16px;background:#fff;border-radius:10px"><h3 style="margin-top:0">Summary</h3><p>${summary}</p></div>
+          <h3>Recommended next steps</h3><div style="padding:16px;background:#e9f9f5;border-radius:10px">${recommendations}</div>
           <h3>Question responses</h3>
           <table style="width:100%;border-collapse:collapse;font-size:13px"><tbody>${answerRows}</tbody></table>
         </div>`,
